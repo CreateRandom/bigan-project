@@ -1,5 +1,6 @@
 from chainer import links as l
 from chainer import functions as f
+
 class CustomClassifier(l.Classifier):
 
     def get_predictions(self, x):
