@@ -14,7 +14,7 @@ import Encoder as e
 
 n_train = 1000
 batchsize = 10
-train_data, test_data = u.get_mnist(n_train=n_train, n_test=100, with_label=False, classes = [0])
+train_data, test_data = u.get_mnist(n_train=n_train, n_test=100, with_label=False, classes = [1])
 #train_noise = np.random.rand(n_train, 25).astype(np.float32)
 
 # the discriminator is tasked with classifying examples as real or fake
@@ -117,9 +117,13 @@ noise = np.random.rand(10, 25).astype(np.float32)
 # generate fake samples using the generator
 generatedImages = Gen(Variable(noise))
 
+img = train_data
+reconstructed = Gen(Enc(Variable(np.array(img))))
+
 #Show generated images
-f, subplot = plt.subplots(2, 5)
+f, subplot = plt.subplots(3, 5)
 for i in range(0, 5):
     subplot[0, i].imshow((generatedImages._data[0][i].astype(np.float64).reshape(28, 28)), cmap='gray')
     subplot[1, i].imshow((train_data[i].reshape(28, 28)), cmap='gray')
+    subplot[2, i].imshow((reconstructed._data[0][i].astype(np.float64).reshape(28, 28)), cmap='gray')
 plt.show()

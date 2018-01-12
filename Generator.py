@@ -6,7 +6,7 @@ class Generator(Chain):
     def __init__(self):
         super(Generator, self).__init__()
 
-        self.in_channels = 20
+        self.in_channels = 30
 
         with self.init_scope():
             self.l0 = L.Linear(None, self.in_channels*784)

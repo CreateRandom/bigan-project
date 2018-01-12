@@ -5,8 +5,7 @@ import chainer.links as L
 class Encoder(Chain):
     def __init__(self):
         super(Encoder, self).__init__()
-        self.n_hidden = 1500
-
+        self.n_hidden = 1000
         with self.init_scope():
             self.l0 = L.Convolution2D(None, 1, ksize=5, stride=2)
             self.l1 = L.Linear(None, self.n_hidden)

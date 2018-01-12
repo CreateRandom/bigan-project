@@ -5,7 +5,7 @@ import chainer.links as L
 class Discriminator(Chain):
     def __init__(self):
         super(Discriminator, self).__init__()
-        self.n_hidden = 1500
+        self.n_hidden = 1000
 
         with self.init_scope():
             self.l0 = L.Convolution2D(None, 1, ksize=5, stride=2)
