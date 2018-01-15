@@ -136,7 +136,7 @@ for i in xrange(0, n_epoch):
 plt.plot(np.arange(1,n_epoch*n_batches+1),disc_loss_list,'b-',np.arange(1,n_epoch*n_batches+1),gen_loss_list,'g-',
     np.arange(1, n_epoch * n_batches + 1), enc_loss_list, 'r-')
 plt.title("Generator and Discriminator loss")
-plt.ylim(0,10)
+plt.ylim(0,3)
 plt.xlim(1,n_epoch*n_batches+1)
 plt.xlabel("Batch")
 plt.ylabel("Loss")
@@ -173,8 +173,8 @@ reconstructed = Gen(latentAll)
 f, subplot = plt.subplots(3, 5)
 for i in range(0, 5):
     subplot[0, i].imshow((generatedImages._data[0][i].astype(np.float64).reshape(28, 28)), cmap='gray')
-    subplot[1, i].imshow((imagesOnly[i].reshape(28, 28)), cmap='gray')
-    subplot[2, i].imshow((reconstructed._data[0][i].astype(np.float64).reshape(28, 28)), cmap='gray')
+    subplot[1, i].imshow((imagesOnly[i*100].reshape(28, 28)), cmap='gray')
+    subplot[2, i].imshow((reconstructed._data[0][i*100].astype(np.float64).reshape(28, 28)), cmap='gray')
 plt.show()
 
 # use k-nearest neighbours
