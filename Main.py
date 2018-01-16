@@ -68,7 +68,7 @@ enc_loss_list = []
 
 for i in xrange(0, n_epoch):
     # learning rate decay
-    if i > math.floor(n_epoch * 0.5):
+    if False:#i > math.floor(n_epoch * 0.5):
         shift1(None)
         shift2(None)
         shift3(None)
