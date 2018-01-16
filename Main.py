@@ -16,7 +16,7 @@ import math
 from sklearn import neighbors, datasets
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-n_epoch = 40
+n_epoch = 20
 n_train = 5000
 batchsize = 128
 weight_decay = 0.000025
@@ -24,14 +24,14 @@ initial_alpha = 0.0002
 final_alpha = 0.000002
 beta_1 = 0.5
 beta_2 = 0.999
+latent_dim = 50
 train_data, test_data = u.get_mnist(n_train=n_train, n_test=100, with_label=True, classes = [0,1,2,3,4,5,6,7,8,9])
-#train_noise = np.random.rand(n_train, 25).astype(np.float32)
 
 # the discriminator is tasked with classifying examples as real or fake
-Disc = CustomClassifier(predictor=d.Discriminator(), lossfun=f.sigmoid_cross_entropy)
+Disc = CustomClassifier(predictor=d.Discriminator(latent_dim), lossfun=f.sigmoid_cross_entropy)
 Disc.compute_accuracy = False
 Gen = g.Generator()
-Enc = e.Encoder()
+Enc = e.Encoder(latent_dim)
 
 # Use Adam optimizer
 # learning rate, beta1, beta2
@@ -80,7 +80,7 @@ for i in xrange(0, n_epoch):
         gen_loss_item = 0
         enc_loss_item = 0
         # create z
-        train_noise = np.random.rand(batchsize, 25).astype(np.float32)
+        train_noise = np.random.rand(batchsize, latent_dim).astype(np.float32)
         # create G(z)
         fakeImages = Gen(Variable(train_noise))
         # create x
@@ -161,7 +161,7 @@ X_train, X_test, y_train, y_test = train_test_split(latent, labels, test_size=0.
 
 # create five generated images with the generator
 # sample some noise
-noise = np.random.rand(10, 25).astype(np.float32)
+noise = np.random.rand(5, latent_dim).astype(np.float32)
 # generate fake samples using the generator
 generatedImages = Gen(Variable(noise))
 # map the test data into latent space

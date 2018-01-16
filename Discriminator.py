@@ -3,7 +3,7 @@ import chainer.functions as F
 import chainer.links as L
 
 class Discriminator(Chain):
-    def __init__(self):
+    def __init__(self,latent_dim):
         super(Discriminator, self).__init__()
         self.n_hidden = 1000
         self.n_dim = 28
@@ -12,9 +12,9 @@ class Discriminator(Chain):
 
             #original
             self.l0 = L.Convolution2D(None, 1, ksize=5, stride=2)
-            self.t0 = L.Linear(None, 144)
+            self.t0 = L.Linear(latent_dim, 144)
             self.l1 = L.Linear(None, self.n_hidden)
-            self.t1 = L.Linear(None, self.n_hidden)
+            self.t1 = L.Linear(latent_dim, self.n_hidden)
             self.l2 = L.Linear(None, 1)
 
             #test 1
@@ -30,8 +30,8 @@ class Discriminator(Chain):
             # test 2
 
             #self.l0 = L.Convolution2D(None, 1, ksize=10, stride=4)
-            #self.l1 = L.Linear(None, 25)
-            #self.l2 = L.Linear(None, 25)
+            #self.l1 = L.Linear(None, latent_dim)
+            #self.l2 = L.Linear(None, latent_dim)
             #self.l3 = L.Linear(None, 1)
 
     def __call__(self, input):
