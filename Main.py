@@ -7,6 +7,7 @@ from chainer import optimizer
 from chainer import functions as f
 from chainer import Variable
 from chainer import iterators as i
+from chainer import datasets as chsets
 from chainer import training as training
 from CustomClassifier import CustomClassifier
 import Discriminator as d
@@ -17,7 +18,7 @@ from sklearn import neighbors, datasets
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 n_epoch = 20
-n_train = 5000
+n_train_per_class = 5000
 batchsize = 128
 weight_decay = 0.000025
 initial_alpha = 0.0002
@@ -25,7 +26,10 @@ final_alpha = 0.000002
 beta_1 = 0.5
 beta_2 = 0.999
 latent_dim = 50
-train_data, test_data = u.get_mnist(n_train=n_train, n_test=100, with_label=True, classes = [0,1,2,3,4,5,6,7,8,9])
+train_data, test_data = u.get_mnist(n_train=n_train_per_class, n_test=100, with_label=True, classes = [0,1,2,3,4,5,6,7,8,9])
+#train_data, test_data  = chsets.get_mnist()
+# get the correct total length
+n_train = train_data._length
 
 # the discriminator is tasked with classifying examples as real or fake
 Disc = CustomClassifier(predictor=d.Discriminator(latent_dim), lossfun=f.sigmoid_cross_entropy)
@@ -102,7 +106,7 @@ for i in xrange(0, n_epoch):
 
 
         # Keep track of loss for plotting
-        loss_on_real = loss_on_real + Disc((fakeImages, train_noise), np.ones((len(realImages), 1)).astype(np.int32)).data
+        loss_on_real = loss_on_real + Disc((fakeImages, train_noise), np.zeros((len(realImages), 1)).astype(np.int32)).data
         loss_on_fake = loss_on_fake + Disc((Variable(np.array(realImages)),projectedImages), np.ones((len(realImages), 1)).astype(np.int32)).data
 
         # Get predictions on fake images
