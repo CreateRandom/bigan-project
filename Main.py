@@ -16,7 +16,7 @@ import math
 from sklearn import neighbors, datasets
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-n_epoch = 20
+n_epoch = 400
 n_train = 5000
 batchsize = 128
 weight_decay = 0.000025
@@ -80,7 +80,7 @@ for i in xrange(0, n_epoch):
         gen_loss_item = 0
         enc_loss_item = 0
         # create z
-        train_noise = np.random.rand(batchsize, latent_dim).astype(np.float32)
+        train_noise = np.random.rand(batchsize, latent_dim).astype(np.float32)*2-1
         # create G(z)
         fakeImages = Gen(Variable(train_noise))
         # create x
@@ -161,7 +161,7 @@ X_train, X_test, y_train, y_test = train_test_split(latent, labels, test_size=0.
 
 # create five generated images with the generator
 # sample some noise
-noise = np.random.rand(5, latent_dim).astype(np.float32)
+noise = np.random.rand(5, latent_dim).astype(np.float32)*2+1
 # generate fake samples using the generator
 generatedImages = Gen(Variable(noise))
 # map the test data into latent space
