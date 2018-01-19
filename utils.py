@@ -1,7 +1,62 @@
 import numpy as np
-
+from chainer.dataset import download
+import os
+import gzip
+import numpy
+import struct
+import six
 import chainer
 from chainer.datasets import TupleDataset
+import chainer.datasets.mnist as mnist
+
+def get_emnist(withlabel=True, ndim=1, scale=1., dtype=numpy.float32,
+              label_dtype=numpy.int32, rgb_format=False):
+    train_raw = _retrieve_emnist_training()
+    train = mnist._preprocess_mnist(train_raw, withlabel, ndim, scale, dtype,
+                              label_dtype, rgb_format)
+    test_raw = _retrieve_emnist_test()
+    test = mnist._preprocess_mnist(test_raw, withlabel, ndim, scale, dtype,
+                             label_dtype, rgb_format)
+    return train, test
+
+def _retrieve_emnist_training():
+    archives = ['bin/emnist-letters-train-images-idx3-ubyte.gz',
+            'bin/emnist-letters-train-labels-idx1-ubyte.gz']
+    return _retrieve_emnist('em_train.npz', archives)
+
+def _retrieve_emnist_test():
+    archives = ['bin/emnist-letters-test-images-idx3-ubyte.gz',
+            'bin/emnist-letters-test-labels-idx1-ubyte.gz']
+    return _retrieve_emnist('em_test.npz', archives)
+
+def _retrieve_emnist(name, archives):
+    # the path to store the cached file to
+    root = download.get_dataset_directory('pfnet/chainer/emnist')
+    path = os.path.join(root, name)
+    return download.cache_or_load_file(
+        path, lambda path: _make_npz(path, archives), numpy.load)
+
+def _make_npz(path,archives):
+    x_url, y_url = archives
+
+    with gzip.open(x_url, 'rb') as fx, gzip.open(y_url, 'rb') as fy:
+        fx.read(4)
+        fy.read(4)
+        N, = struct.unpack('>i', fx.read(4))
+        if N != struct.unpack('>i', fy.read(4))[0]:
+            raise RuntimeError('wrong pair of EMNIST images and labels')
+        fx.read(8)
+
+        x = numpy.empty((N, 784), dtype=numpy.uint8)
+        y = numpy.empty(N, dtype=numpy.uint8)
+
+        for i in six.moves.range(N):
+            y[i] = ord(fy.read(1))
+            for j in six.moves.range(784):
+                x[i, j] = ord(fx.read(1))
+
+    numpy.savez_compressed(path, x=x, y=y)
+    return {'x': x, 'y': y}
 
 def get_mnist(n_train=100, n_test=100, n_dim=1, with_label=True, classes = None):
     """
