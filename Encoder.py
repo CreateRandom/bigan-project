@@ -20,6 +20,7 @@ class Encoder(Chain):
         l0_out = F.relu(self.l0(x))
         l1_out = self.l1(l0_out)
         bn_out = F.relu(self.bn(l1_out))
-        y = F.relu(self.l2(bn_out))
+        l2_out = self.l2(bn_out)
+        y = F.leaky_relu(l2_out, 0.2)
 
         return y
