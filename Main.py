@@ -32,25 +32,28 @@ train_data, test_data = u.get_mnist(n_train=n_train_per_class, n_test=100, with_
 n_train = train_data._length
 
 # the discriminator is tasked with classifying examples as real or fake
-Disc = CustomClassifier(predictor=d.Discriminator(latent_dim), lossfun=f.sigmoid_cross_entropy)
+Disc = CustomClassifier(predictor=d.Discriminator(latent_dim,n_hidden=1024,non_linearity=f.relu), lossfun=f.sigmoid_cross_entropy)
 Disc.compute_accuracy = False
-Gen = g.Generator()
-Enc = e.Encoder(latent_dim)
+Gen = g.Generator(n_hidden=1024,non_linearity=f.relu)
+Enc = e.Encoder(latent_dim,n_hidden=1024,non_linearity=f.relu)
 
 # Use Adam optimizer
 # learning rate, beta1, beta2
 disc_optimizer = optimizers.Adam(initial_alpha,beta1=beta_1,beta2=beta_2)
 disc_optimizer.setup(Disc)
-# using those parameters for all optimizers: 0.36 --> 0.61
-disc_optimizer.add_hook(optimizer.WeightDecay(rate=weight_decay))
 
 gen_optimizer = optimizers.Adam(initial_alpha,beta1=beta_1,beta2=beta_2)
 gen_optimizer.setup(Gen)
-gen_optimizer.add_hook(optimizer.WeightDecay(rate=weight_decay))
 
 enc_optimizer = optimizers.Adam(initial_alpha,beta1=beta_1,beta2=beta_2)
 enc_optimizer.setup(Enc)
-enc_optimizer.add_hook(optimizer.WeightDecay(rate=weight_decay))
+
+# use weight decay if specified
+if weight_decay is not None:
+    # using those parameters for all optimizers: 0.36 --> 0.61
+    disc_optimizer.add_hook(optimizer.WeightDecay(rate=weight_decay))
+    gen_optimizer.add_hook(optimizer.WeightDecay(rate=weight_decay))
+    enc_optimizer.add_hook(optimizer.WeightDecay(rate=weight_decay))
 
 #Define iterator
 train_iter_X = i.SerialIterator(train_data,batch_size=batchsize,repeat=True,shuffle=True)
@@ -58,13 +61,12 @@ train_iter_X = i.SerialIterator(train_data,batch_size=batchsize,repeat=True,shuf
 # exponential learning rate decay
 # decrease the rate after half of the epochs have passed by such a rate that it reaches the final alpha at the end
 factor = math.pow((final_alpha / initial_alpha),  (1 / math.floor(n_epoch * 0.5)))
-shift1 = training.extensions.ExponentialShift(attr="alpha",rate=0.99,init=initial_alpha,target=final_alpha,optimizer=disc_optimizer)
+shift1 = training.extensions.ExponentialShift(attr="alpha",rate=factor,init=initial_alpha,target=final_alpha,optimizer=disc_optimizer)
 shift1.initialize(None)
-shift2 = training.extensions.ExponentialShift(attr="alpha",rate=0.99,init=initial_alpha,target=final_alpha,optimizer=gen_optimizer)
+shift2 = training.extensions.ExponentialShift(attr="alpha",rate=factor,init=initial_alpha,target=final_alpha,optimizer=gen_optimizer)
 shift2.initialize(None)
-shift3 = training.extensions.ExponentialShift(attr="alpha",rate=0.99,init=initial_alpha,target=final_alpha,optimizer=enc_optimizer)
+shift3 = training.extensions.ExponentialShift(attr="alpha",rate=factor,init=initial_alpha,target=final_alpha,optimizer=enc_optimizer)
 shift3.initialize(None)
-#shift(None)
 
 disc_loss_list = []
 gen_loss_list = []
@@ -113,7 +115,7 @@ for i in xrange(0, n_epoch):
         predictions = Disc.get_predictions((fakeImages, train_noise))
 
         # Update generator
-        gen_loss = f.sigmoid_cross_entropy(predictions, np.ones((len(realImages), 1)).astype(np.int32))
+        gen_loss = f.sigmoid_cross_entropy(predictions, np.ones((len(fakeImages), 1)).astype(np.int32))
         gen_loss_item = gen_loss_item + 2 * gen_loss.data
         Gen.cleargrads()
         gen_loss.backward()
@@ -177,8 +179,8 @@ reconstructed = Gen(latentAll)
 f, subplot = plt.subplots(3, 5)
 for i in range(0, 5):
     subplot[0, i].imshow((generatedImages._data[0][i].astype(np.float64).reshape(28, 28)), cmap='gray')
-    subplot[1, i].imshow((imagesOnly[i*100].reshape(28, 28)), cmap='gray')
-    subplot[2, i].imshow((reconstructed._data[0][i*100].astype(np.float64).reshape(28, 28)), cmap='gray')
+    subplot[1, i].imshow((imagesOnly[i].reshape(28, 28)), cmap='gray')
+    subplot[2, i].imshow((reconstructed._data[0][i].astype(np.float64).reshape(28, 28)), cmap='gray')
 plt.show()
 
 # use k-nearest neighbours

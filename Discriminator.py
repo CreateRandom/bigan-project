@@ -3,11 +3,11 @@ import chainer.functions as F
 import chainer.links as L
 
 class Discriminator(Chain):
-    def __init__(self,latent_dim,n_hidden=1024):
+    def __init__(self,latent_dim,n_hidden=1024, non_linearity=F.relu):
         super(Discriminator, self).__init__()
 
         self.n_hidden = n_hidden
-
+        self.non_linearity = non_linearity
         with self.init_scope():
             #paper
             self.l0 = L.Linear(None, self.n_hidden)
@@ -29,10 +29,10 @@ class Discriminator(Chain):
         # paper
         l0_out = self.l0(x)
         t0_out = self.t0(z)
-        comb_0 = F.relu(l0_out + t0_out)
+        comb_0 = self.non_linearity(l0_out + t0_out)
         l1_out = self.l1(comb_0)
         t1_out = self.t1(z)
-        comb_1 = F.relu(self.bn(l1_out + t1_out))
+        comb_1 = self.non_linearity(self.bn(l1_out + t1_out))
         l2_out = self.l2(comb_1)
         y = F.leaky_relu(l2_out, 0.2)
 

@@ -3,10 +3,11 @@ import chainer.functions as F
 import chainer.links as L
 
 class Encoder(Chain):
-    def __init__(self,latent_dim,n_hidden=1024):
+    def __init__(self,latent_dim,n_hidden=1024,non_linearity=F.relu):
         super(Encoder, self).__init__()
 
         self.n_hidden = n_hidden
+        self.non_linearity = non_linearity
 
         with self.init_scope():
             self.l0 = L.Linear(None, self.n_hidden)
@@ -17,9 +18,9 @@ class Encoder(Chain):
     def __call__(self, x):
         # -1 --> filler for arbitrary number of elements, 1 * 28 * 28 --> one color channel, 28 by 28 pixels
         x = F.reshape(x, (-1, 28*28))
-        l0_out = F.relu(self.l0(x))
+        l0_out = self.non_linearity(self.l0(x))
         l1_out = self.l1(l0_out)
-        bn_out = F.relu(self.bn(l1_out))
+        bn_out = self.non_linearity(self.bn(l1_out))
         l2_out = self.l2(bn_out)
         y = F.leaky_relu(l2_out, 0.2)
 
