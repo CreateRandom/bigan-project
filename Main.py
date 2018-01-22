@@ -1,3 +1,5 @@
+import chainer
+
 import utils as u
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
@@ -8,6 +10,7 @@ from chainer import functions as f
 from chainer import Variable
 from chainer import iterators as i
 from chainer import datasets as chsets
+from chainer import using_config
 from chainer import training as training
 from CustomClassifier import CustomClassifier
 import Discriminator as d
@@ -17,8 +20,8 @@ import math
 from sklearn import neighbors, datasets
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-n_epoch = 20
-n_train_per_class = 5000
+n_epoch = 10
+n_train_per_class = 1024
 batchsize = 128
 weight_decay = 0.000025
 initial_alpha = 0.0002
@@ -26,8 +29,10 @@ final_alpha = 0.000002
 beta_1 = 0.5
 beta_2 = 0.999
 latent_dim = 50
-train_data, test_data = u.get_mnist(n_train=n_train_per_class, n_test=100, with_label=True, classes = [0,1,2,3,4,5,6,7,8,9])
-#train_data, test_data  = chsets.get_mnist()
+#train_data, test_data = u.get_mnist(n_train=n_train_per_class, n_test=128, with_label=True, classes = [0,1,2,3,4,5,6,7,8,9])
+
+train_data, test_data  = chsets.get_mnist()
+
 # get the correct total length
 n_train = train_data._length
 
@@ -69,6 +74,8 @@ shift3 = training.extensions.ExponentialShift(attr="alpha",rate=factor,init=init
 shift3.initialize(None)
 
 disc_loss_list = []
+disc_loss_list2 = []
+
 gen_loss_list = []
 enc_loss_list = []
 
@@ -134,35 +141,47 @@ for i in xrange(0, n_epoch):
         enc_optimizer.update()
 
         # Add loss values to the lists for plotting
-        disc_loss_list.append(loss_on_real + loss_on_fake)
+        disc_loss_list.append(loss_on_real)
+        disc_loss_list2.append(loss_on_fake)
         gen_loss_list.append(gen_loss_item)
         enc_loss_list.append(enc_loss_item)
 
 #Plot loss over epochs
 plt.plot(np.arange(1,n_epoch*n_batches+1),disc_loss_list,'b-',np.arange(1,n_epoch*n_batches+1),gen_loss_list,'g-',
-    np.arange(1, n_epoch * n_batches + 1), enc_loss_list, 'r-')
+    np.arange(1, n_epoch * n_batches + 1), enc_loss_list, 'r-',np.arange(1,n_epoch*n_batches+1),disc_loss_list2,'y-')
 plt.title("Generator and Discriminator loss")
 plt.ylim(0,3)
 plt.xlim(1,n_epoch*n_batches+1)
 plt.xlabel("Batch")
 plt.ylabel("Loss")
-blue = mpatches.Patch(color='blue', label='Discriminator')
+blue = mpatches.Patch(color='blue', label='Disc (real)')
 green = mpatches.Patch(color='green', label='Generator')
 red = mpatches.Patch(color='red', label='Encoder')
-plt.legend(handles=[blue,green,red])
+yellow = mpatches.Patch(color='yellow', label='Disc (fake)')
+plt.legend(handles=[blue,green,red,yellow])
 plt.show()
+
+# end of training --> set context to make BN layers behave properly
+#using_config('train',False)
+# use this call instead as the other seems to have no effect for unknown reasons...
+chainer.config.__setattr__('train',False)
+# use this to inspect the current config.
+#chainer.config.show()
+
 
 latent = []
 imagesOnly = []
 labels = []
 for image in test_data:
-    latent.append(Enc(Variable(np.array(image[0])))._data[0][0])
-    imagesOnly.append(image[0])
+    pixels = image[0]
+    latent_img = Enc(Variable(np.array(pixels)))
+    latent.append(latent_img._data[0][0])
+    imagesOnly.append(pixels)
     labels.append(image[1])
 
 
 # split test set again
-X_train, X_test, y_train, y_test = train_test_split(latent, labels, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(latent, labels, test_size=0.2, random_state=14)
 
 
 # create five generated images with the generator
@@ -189,4 +208,4 @@ clf.fit(X_train,y_train)
 
 pred = clf.predict(X_test)
 
-print accuracy_score(y_test,pred)
+print accuracy_score(pred,y_test)
