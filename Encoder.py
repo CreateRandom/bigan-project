@@ -25,9 +25,9 @@ class Encoder(Chain):
 
     def __call__(self, x):
         # -1 --> filler for arbitrary number of elements, 1 * 28 * 28 --> one color channel, 28 by 28 pixels
-        #x = F.reshape(x, (-1, 28*28))
-        # paper
 
+        # paper
+        # x = F.reshape(x, (-1, 28*28))
         # l0_out = self.non_linearity(self.l0(x))
         # l1_out = self.l1(l0_out)
         # bn_out = self.non_linearity(self.bn(l1_out))

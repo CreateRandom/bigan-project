@@ -21,7 +21,7 @@ import math
 from sklearn import neighbors, datasets
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-n_epoch = 50
+n_epoch = 10
 n_train_per_class = 128
 batchsize = 128
 weight_decay = 0.000025
@@ -38,8 +38,8 @@ train_data, test_data = u.get_mnist(n_train=n_train_per_class, n_test=128, with_
 n_train = train_data._length
 
 # the discriminator is tasked with classifying examples as real or fake
-Disc = CustomClassifier(predictor=d.Discriminator(latent_dim,n_hidden=1024,non_linearity=f.relu,
-                                                  use_encoder=False), lossfun=f.sigmoid_cross_entropy)
+Disc = CustomClassifier(predictor=d.Discriminator(latent_dim,n_hidden=256,non_linearity=f.relu,
+                                                  use_encoder=True), lossfun=f.sigmoid_cross_entropy)
 Disc.compute_accuracy = False
 Gen = g.Generator(n_hidden=1024,non_linearity=f.relu)
 Enc = e.Encoder(latent_dim,n_hidden=1024,non_linearity=f.relu)

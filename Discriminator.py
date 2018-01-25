@@ -30,7 +30,7 @@ class Discriminator(Chain):
         #turn image into flat vector
         # -1 --> filler for arbitrary number of elements, 1 * 28 * 28 --> one color channel, 28 by 28 pixels
 
-      #  x = F.reshape(input[0], (-1, 28*28))
+        x = F.reshape(input[0], (-1, 28*28))
         z = input[1]
         # paper
         # l0_out = self.l0(x)

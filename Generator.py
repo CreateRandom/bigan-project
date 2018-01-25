@@ -8,7 +8,7 @@ class Generator(Chain):
 
         self.n_hidden = n_hidden
         self.non_linearity = non_linearity
-        self.in_channels  = 30
+        self.in_channels  = 5
         self.img_size = 28
         with self.init_scope():
             # paper
