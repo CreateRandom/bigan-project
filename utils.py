@@ -9,6 +9,14 @@ import chainer
 from chainer.datasets import TupleDataset
 import chainer.datasets.mnist as mnist
 
+def shuffle_in_unison(a, b, c):
+    rng_state = numpy.random.get_state()
+    numpy.random.shuffle(a)
+    numpy.random.set_state(rng_state)
+    numpy.random.shuffle(b)
+    numpy.random.set_state(rng_state)
+    numpy.random.shuffle(c)
+
 def get_emnist(withlabel=True, ndim=1, scale=1., dtype=numpy.float32,
               label_dtype=numpy.int32, rgb_format=False):
     train_raw = _retrieve_emnist_training()
@@ -178,3 +186,5 @@ class RandomIterator(object):
             return self.data[self._order[i:(i + self.batch_size)]]
         else:
             return list(self.data[self._order[i:(i + self.batch_size)]])
+
+

@@ -117,8 +117,8 @@ for i in xrange(0, n_epoch):
 
 
         # Keep track of loss for plotting
-        loss_on_real = loss_on_real + Disc((fakeImages, train_noise), np.zeros((len(realImages), 1)).astype(np.int32)).data
-        loss_on_fake = loss_on_fake + Disc((Variable(np.array(realImages)),projectedImages), np.ones((len(realImages), 1)).astype(np.int32)).data
+        loss_on_real = loss_on_real + Disc((Variable(np.array(realImages)),projectedImages), np.ones((len(realImages), 1)).astype(np.int32)).data
+        loss_on_fake = loss_on_fake + Disc((fakeImages, train_noise), np.zeros((len(realImages), 1)).astype(np.int32)).data
 
         # Get predictions on fake images
         predictions = Disc.get_predictions((fakeImages, train_noise))
