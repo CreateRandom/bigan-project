@@ -21,8 +21,8 @@ import math
 from sklearn import neighbors, datasets
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
-n_epoch = 10
-n_train_per_class = 128
+n_epoch = 20
+n_train_per_class = 512
 batchsize = 128
 weight_decay = 0.000025
 initial_alpha = 0.0002
@@ -30,7 +30,7 @@ final_alpha = 0.000002
 beta_1 = 0.5
 beta_2 = 0.999
 latent_dim = 50
-train_data, test_data = u.get_mnist(n_train=n_train_per_class, n_test=128, with_label=True, classes = [0,1,2,3,4,5,6,7,8,9])
+train_data, test_data = u.get_mnist(n_train=n_train_per_class, n_test=512, with_label=True, classes = [0,1,2,3,4,5,6,7,8,9])
 
 #train_data, test_data = chsets.get_mnist()
 #train_data, test_data = u.get_emnist()
@@ -38,11 +38,11 @@ train_data, test_data = u.get_mnist(n_train=n_train_per_class, n_test=128, with_
 n_train = train_data._length
 
 # the discriminator is tasked with classifying examples as real or fake
-Disc = CustomClassifier(predictor=d.Discriminator(latent_dim,n_hidden=256,non_linearity=f.relu,
+Disc = CustomClassifier(predictor=d.Discriminator(latent_dim,n_hidden=4,non_linearity=f.relu,
                                                   use_encoder=True), lossfun=f.sigmoid_cross_entropy)
 Disc.compute_accuracy = False
-Gen = g.Generator(n_hidden=1024,non_linearity=f.relu)
-Enc = e.Encoder(latent_dim,n_hidden=1024,non_linearity=f.relu)
+Gen = g.Generator(n_hidden=64,non_linearity=f.relu)
+Enc = e.Encoder(latent_dim,n_hidden=64,non_linearity=f.relu)
 
 # Use Adam optimizer
 # learning rate, beta1, beta2
@@ -182,7 +182,7 @@ imagesOnly = []
 labels = []
 for image in test_data:
     pixels = image[0]
-    latent_img = Enc(Variable(np.array(pixels)))
+    latent_img = Enc(pixels)
     latent.append(latent_img._data[0][0])
     imagesOnly.append(pixels)
     labels.append(image[1])
@@ -191,24 +191,24 @@ for image in test_data:
 # split test set again
 X_train, X_test, y_train, y_test = train_test_split(latent, labels, test_size=0.2, random_state=14)
 
-
-# create five generated images with the generator
-# sample some noise
-noise = np.random.rand(5, latent_dim).astype(np.float32)
-# generate fake samples using the generator
-generatedImages = Gen(Variable(noise))
-# map the test data into latent space
-latentAll = Enc(Variable(np.array(imagesOnly)))
-# build a reconstruction
-reconstructed = Gen(latentAll)
-
-#Show generated images
-f, subplot = plt.subplots(3, 5)
-for i in range(0, 5):
-    subplot[0, i].imshow((generatedImages._data[0][i].astype(np.float64).reshape(28, 28)), cmap='gray')
-    subplot[1, i].imshow((imagesOnly[i].reshape(28, 28)), cmap='gray')
-    subplot[2, i].imshow((reconstructed._data[0][i].astype(np.float64).reshape(28, 28)), cmap='gray')
-plt.show()
+#
+# # create five generated images with the generator
+# # sample some noise
+# noise = np.random.rand(5, latent_dim).astype(np.float32)
+# # generate fake samples using the generator
+# generatedImages = Gen(Variable(noise))
+# # map the test data into latent space
+# latentAll = Enc(Variable(np.array(imagesOnly)))
+# # build a reconstruction
+# reconstructed = Gen(latentAll)
+#
+# #Show generated images
+# f, subplot = plt.subplots(3, 5)
+# for i in range(0, 5):
+#     subplot[0, i].imshow((generatedImages._data[0][i].astype(np.float64).reshape(28, 28)), cmap='gray')
+#     subplot[1, i].imshow((imagesOnly[i].reshape(28, 28)), cmap='gray')
+#     subplot[2, i].imshow((reconstructed._data[0][i].astype(np.float64).reshape(28, 28)), cmap='gray')
+# plt.show()
 
 # use k-nearest neighbours
 clf = neighbors.KNeighborsClassifier(1,'uniform')

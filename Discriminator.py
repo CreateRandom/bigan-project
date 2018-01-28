@@ -18,11 +18,15 @@ class Discriminator(Chain):
             # self.bn = L.BatchNormalization(self.n_hidden)
             # self.l2 = L.Linear(self.n_hidden, 1)
 
-            # conv. experiment
-            self.l0 = L.Convolution2D(None, 1, ksize=5, stride=2)
-            self.t0 = L.Linear(latent_dim, 144)
+            # # conv. experiment
+            # self.l0 = L.Convolution2D(None, 1, ksize=5, stride=2)
+            # self.t0 = L.Linear(latent_dim, 144)
+            # self.l1 = L.Linear(None, self.n_hidden)
+            # self.t1 = L.Linear(latent_dim, self.n_hidden)
+            # self.l2 = L.Linear(None, 1)
+
+            self.l0 = L.Linear(None, self.n_hidden)
             self.l1 = L.Linear(None, self.n_hidden)
-            self.t1 = L.Linear(latent_dim, self.n_hidden)
             self.l2 = L.Linear(None, 1)
 
 
@@ -49,19 +53,19 @@ class Discriminator(Chain):
         # l2_out = self.l2(comb_1)
         # y = F.leaky_relu(l2_out, 0.2)
 
-        #original
-        l0_out = self.l0(F.reshape(input[0], (-1, 1, 28, 28)))
-        if(self.use_encoder):
-            t0_out = self.t0(z)
-            comb_1 = self.non_linearity(F.reshape(l0_out,(-1, 144)) + t0_out)
-        else:
-            comb_1 = self.non_linearity(F.reshape(l0_out,(-1, 144)))
-        l1_out = self.l1(comb_1)
-        if(self.use_encoder):
-            t1_out = self.t1(z)
-            comb_2 = self.non_linearity(l1_out + t1_out)
-        else:
-            comb_2 = self.non_linearity(l1_out)
-        y = self.l2(comb_2)
+        # #original
+        # l0_out = self.l0(F.reshape(input[0], (-1, 1, 28, 28)))
+        # if(self.use_encoder):
+        #     t0_out = self.t0(z)
+        #     comb_1 = self.non_linearity(F.reshape(l0_out,(-1, 144)) + t0_out)
+        # else:
+        #     comb_1 = self.non_linearity(F.reshape(l0_out,(-1, 144)))
+        # l1_out = self.l1(comb_1)
+        # if(self.use_encoder):
+        #     t1_out = self.t1(z)
+        #     comb_2 = self.non_linearity(l1_out + t1_out)
+        # else:
+        #     comb_2 = self.non_linearity(l1_out)
+        # y = self.l2(comb_2)
 
-        return y
+        return self.l2(self.l1(self.l0(x)))

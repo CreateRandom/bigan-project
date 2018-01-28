@@ -8,7 +8,7 @@ class Generator(Chain):
 
         self.n_hidden = n_hidden
         self.non_linearity = non_linearity
-        self.in_channels  = 5
+        self.in_channels = 1
         self.img_size = 28
         with self.init_scope():
             # paper
@@ -17,10 +17,16 @@ class Generator(Chain):
             # self.bn = L.BatchNormalization(self.n_hidden)
             # self.l2 = L.Linear(self.n_hidden, 28*28)
 
-            # conv. exper
-            self.l0 = L.Linear(None, self.in_channels*self.img_size*self.img_size)
-            self.l1 = L.BatchNormalization(self.in_channels*self.img_size*self.img_size)
-            self.l2 = L.Deconvolution2D(self.in_channels, 1, ksize=3, outsize=(self.img_size,self.img_size), stride=1, pad=1)
+            # # conv. exper
+            self.l0 = L.Linear(None, self.n_hidden * 4 * 4)
+            self.l1 = L.Deconvolution2D(self.n_hidden, self.n_hidden/2, ksize=7, outsize=(8,8), stride=1, pad=1)
+            self.l2 = L.Deconvolution2D(self.n_hidden/2, self.n_hidden/4, ksize=5, outsize=(20,20), stride=2, pad=0)
+            self.l3 = L.Deconvolution2D(self.n_hidden/4, 1, ksize=9, outsize=(self.img_size, self.img_size), stride=1, pad=0)
+
+            # self.l0 = L.Linear(None, self.n_hidden)
+            # self.l1 = L.Linear(None, self.n_hidden)
+            # self.l2 = L.Linear(None, self.img_size*self.img_size)
+
 
     def __call__(self, x):
         # paper
@@ -30,15 +36,14 @@ class Generator(Chain):
         # y = F.relu(self.l2(bn_out))
 
         # conv. exper
-        # fully connected relu layer
-        h0 = self.l0(x)
-        h1 = self.non_linearity(self.l1(h0))
-        # reshape for deconv layer
-        h1 = F.reshape(h1,(-1, self.in_channels, self.img_size,self.img_size))
-        # sigmoid deconv
-        h2 = self.l2(h1)
-        y = F.sigmoid(h2)
+        h1 = F.reshape(self.l0(x),(-1, self.n_hidden, 4, 4))
+        h2 = self.l1(h1)
+        #h2 = self.non_linearity(h2)
+        h3 = self.l2(h2)
+        #h3 = self.non_linearity(h3)
+        y = self.l3(h3)
+        #y = self.non_linearity(y)
 
-        y = F.reshape(y, (-1, 1, 28, 28))
+        #y = F.reshape(h3, (-1, 1, 28, 28))
 
         return y
