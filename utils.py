@@ -9,6 +9,11 @@ import chainer
 from chainer.datasets import TupleDataset
 import chainer.datasets.mnist as mnist
 
+def rescale_noise(x):
+    x = (x * 2)
+    x = x - 1
+    return x
+
 def shuffle_in_unison(a, b, c):
     rng_state = numpy.random.get_state()
     numpy.random.shuffle(a)
