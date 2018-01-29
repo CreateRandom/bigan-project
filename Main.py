@@ -38,11 +38,11 @@ train_data, test_data = u.get_mnist(n_train=n_train_per_class, n_test=512, with_
 n_train = train_data._length
 
 # the discriminator is tasked with classifying examples as real or fake
-Disc = CustomClassifier(predictor=d.Discriminator(latent_dim,n_hidden=4,non_linearity=f.relu,
+Disc = CustomClassifier(predictor=d.Discriminator(latent_dim,n_hidden=8,non_linearity=f.relu,
                                                   use_encoder=True), lossfun=f.sigmoid_cross_entropy)
 Disc.compute_accuracy = False
-Gen = g.Generator(n_hidden=64,non_linearity=f.relu)
-Enc = e.Encoder(latent_dim,n_hidden=64,non_linearity=f.relu)
+Gen = g.Generator(n_hidden=8,non_linearity=f.relu)
+Enc = e.Encoder(latent_dim,n_hidden=8,non_linearity=f.relu)
 
 # Use Adam optimizer
 # learning rate, beta1, beta2
@@ -191,25 +191,6 @@ for image in test_data:
 # split test set again
 X_train, X_test, y_train, y_test = train_test_split(latent, labels, test_size=0.2, random_state=14)
 
-#
-# # create five generated images with the generator
-# # sample some noise
-# noise = np.random.rand(5, latent_dim).astype(np.float32)
-# # generate fake samples using the generator
-# generatedImages = Gen(Variable(noise))
-# # map the test data into latent space
-# latentAll = Enc(Variable(np.array(imagesOnly)))
-# # build a reconstruction
-# reconstructed = Gen(latentAll)
-#
-# #Show generated images
-# f, subplot = plt.subplots(3, 5)
-# for i in range(0, 5):
-#     subplot[0, i].imshow((generatedImages._data[0][i].astype(np.float64).reshape(28, 28)), cmap='gray')
-#     subplot[1, i].imshow((imagesOnly[i].reshape(28, 28)), cmap='gray')
-#     subplot[2, i].imshow((reconstructed._data[0][i].astype(np.float64).reshape(28, 28)), cmap='gray')
-# plt.show()
-
 # use k-nearest neighbours
 clf = neighbors.KNeighborsClassifier(1,'uniform')
 clf.fit(X_train,y_train)
@@ -217,3 +198,22 @@ clf.fit(X_train,y_train)
 pred = clf.predict(X_test)
 
 print accuracy_score(pred,y_test)
+
+# create five generated images with the generator
+# sample some noise
+noise = np.random.rand(5, latent_dim).astype(np.float32)
+# generate fake samples using the generator
+generatedImages = Gen(Variable(noise))
+# map the test data into latent space
+latentAll = Enc(Variable(np.array(imagesOnly)))
+# build a reconstruction
+reconstructed = Gen(latentAll)
+
+#Show generated images
+f, subplot = plt.subplots(3, 5)
+for i in range(0, 5):
+    subplot[0, i].imshow((generatedImages._data[0][i].astype(np.float64).reshape(28, 28)), cmap='gray')
+    subplot[1, i].imshow((imagesOnly[i].reshape(28, 28)), cmap='gray')
+    subplot[2, i].imshow((reconstructed._data[0][i].astype(np.float64).reshape(28, 28)), cmap='gray')
+plt.show()
+
